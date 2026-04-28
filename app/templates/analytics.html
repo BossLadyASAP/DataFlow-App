@@ -1,4 +1,4 @@
-{% extends “base.html” %}
+{% extends 'base.html' %}
 
 {% block title %}{{ translations.analysis_title }} - INF232 EC2{% endblock %}
 
@@ -10,7 +10,6 @@
         <p>Descriptive Statistics &amp; Data Insights</p>
     </section>
 
-```
 {% if stats %}
 <section class="stats-grid">
     <div class="stat-card">
@@ -156,7 +155,6 @@
         <i class="fas fa-spinner fa-spin"></i> <span id="export-msg">Generating…</span>
     </div>
 </section>
-```
 
 </div>
 {% endblock %}
