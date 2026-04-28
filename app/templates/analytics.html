@@ -1,170 +1,173 @@
-{% extends "base.html" %}
+{% extends “base.html” %}
 
 {% block title %}{{ translations.analysis_title }} - INF232 EC2{% endblock %}
 
 {% block content %}
+
 <div class="container">
     <section class="analytics-header">
         <h1>{{ translations.analysis_title }}</h1>
         <p>Descriptive Statistics &amp; Data Insights</p>
     </section>
 
-    {% if stats %}
-    <section class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-database"></i></div>
-            <div class="stat-content">
-                <h3>{{ translations.total_responses }}</h3>
-                <p class="stat-value">{{ stats.total_count }}</p>
-            </div>
+```
+{% if stats %}
+<section class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-database"></i></div>
+        <div class="stat-content">
+            <h3>{{ translations.total_responses }}</h3>
+            <p class="stat-value">{{ stats.total_count }}</p>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-star"></i></div>
-            <div class="stat-content">
-                <h3>{{ translations.avg_rating }}</h3>
-                <p class="stat-value">{{ stats.average }}/5</p>
-            </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-star"></i></div>
+        <div class="stat-content">
+            <h3>{{ translations.avg_rating }}</h3>
+            <p class="stat-value">{{ stats.average }}/5</p>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
-            <div class="stat-content">
-                <h3>{{ translations.highest_rating }}</h3>
-                <p class="stat-value">{{ stats.max }}/5</p>
-            </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
+        <div class="stat-content">
+            <h3>{{ translations.highest_rating }}</h3>
+            <p class="stat-value">{{ stats.max }}/5</p>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
-            <div class="stat-content">
-                <h3>{{ translations.lowest_rating }}</h3>
-                <p class="stat-value">{{ stats.min }}/5</p>
-            </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
+        <div class="stat-content">
+            <h3>{{ translations.lowest_rating }}</h3>
+            <p class="stat-value">{{ stats.min }}/5</p>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Charts row 1 -->
-    <section class="analysis-section">
-        <div class="analysis-box chart-box">
-            <h2><i class="fas fa-chart-bar chart-icon"></i> {{ translations.rating_distribution }}</h2>
-            <div class="chart-wrapper"><canvas id="barChart"></canvas></div>
-        </div>
-        <div class="analysis-box chart-box">
-            <h2><i class="fas fa-chart-pie chart-icon"></i> Rating Share</h2>
-            <div class="chart-wrapper"><canvas id="doughnutChart"></canvas></div>
-        </div>
-    </section>
+<!-- Charts row 1 -->
+<section class="analysis-section">
+    <div class="analysis-box chart-box">
+        <h2><i class="fas fa-chart-bar chart-icon"></i> {{ translations.rating_distribution }}</h2>
+        <div class="chart-wrapper"><canvas id="barChart"></canvas></div>
+    </div>
+    <div class="analysis-box chart-box">
+        <h2><i class="fas fa-chart-pie chart-icon"></i> Rating Share</h2>
+        <div class="chart-wrapper"><canvas id="doughnutChart"></canvas></div>
+    </div>
+</section>
 
-    <!-- Charts row 2 -->
-    <section class="analysis-section">
-        <div class="analysis-box chart-box">
-            <h2><i class="fas fa-bullseye chart-icon"></i> Rating Profile</h2>
-            <div class="chart-wrapper"><canvas id="radarChart"></canvas></div>
-        </div>
-        <div class="analysis-box">
-            <h2><i class="fas fa-table chart-icon"></i> Additional Statistics</h2>
-            <div class="stats-table">
-                <div class="stats-row">
-                    <span class="stats-label">Median Rating:</span>
-                    <span class="stats-value">{{ stats.median }}/5</span>
-                </div>
-                <div class="stats-row">
-                    {% if stats.mode %}
-                    <span class="stats-label">Mode (Most Frequent):</span>
-                    <span class="stats-value">{{ stats.mode }}/5</span>
-                    {% else %}
-                    <span class="stats-label">Mode:</span>
-                    <span class="stats-value">No mode</span>
-                    {% endif %}
-                </div>
-                <div class="stats-row">
-                    <span class="stats-label">Standard Deviation:</span>
-                    <span class="stats-value">{{ stats.std_dev }}</span>
-                </div>
-                <div class="stats-row">
-                    <span class="stats-label">Range:</span>
-                    <span class="stats-value">{{ stats.max - stats.min }}</span>
-                </div>
-                <div class="stats-row">
-                    <span class="stats-label">Total Responses:</span>
-                    <span class="stats-value">{{ stats.total_count }}</span>
-                </div>
+<!-- Charts row 2 -->
+<section class="analysis-section">
+    <div class="analysis-box chart-box">
+        <h2><i class="fas fa-bullseye chart-icon"></i> Rating Profile</h2>
+        <div class="chart-wrapper"><canvas id="radarChart"></canvas></div>
+    </div>
+    <div class="analysis-box">
+        <h2><i class="fas fa-table chart-icon"></i> Additional Statistics</h2>
+        <div class="stats-table">
+            <div class="stats-row">
+                <span class="stats-label">Median Rating:</span>
+                <span class="stats-value">{{ stats.median }}/5</span>
             </div>
-            <div class="distribution-chart" style="margin-top:1.5rem;">
-                {% for rating in range(1, 6) %}
-                <div class="distribution-bar">
-                    <div class="bar-label">{{ rating }} ⭐</div>
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width:{% if stats.total_count > 0 %}{{ (stats.distribution[rating] / stats.total_count * 100) }}{% else %}0{% endif %}%">
-                            <span class="bar-count">{{ stats.distribution[rating] }}</span>
-                        </div>
+            <div class="stats-row">
+                {% if stats.mode %}
+                <span class="stats-label">Mode (Most Frequent):</span>
+                <span class="stats-value">{{ stats.mode }}/5</span>
+                {% else %}
+                <span class="stats-label">Mode:</span>
+                <span class="stats-value">No mode</span>
+                {% endif %}
+            </div>
+            <div class="stats-row">
+                <span class="stats-label">Standard Deviation:</span>
+                <span class="stats-value">{{ stats.std_dev }}</span>
+            </div>
+            <div class="stats-row">
+                <span class="stats-label">Range:</span>
+                <span class="stats-value">{{ stats.max - stats.min }}</span>
+            </div>
+            <div class="stats-row">
+                <span class="stats-label">Total Responses:</span>
+                <span class="stats-value">{{ stats.total_count }}</span>
+            </div>
+        </div>
+        <div class="distribution-chart" style="margin-top:1.5rem;">
+            {% for rating in range(1, 6) %}
+            <div class="distribution-bar">
+                <div class="bar-label">{{ rating }} ⭐</div>
+                <div class="bar-container">
+                    <div class="bar-fill" style="width:{% if stats.total_count > 0 %}{{ (stats.distribution[rating] / stats.total_count * 100) }}{% else %}0{% endif %}%">
+                        <span class="bar-count">{{ stats.distribution[rating] }}</span>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-    </section>
-
-    {% if feedback %}
-    <section class="feedback-section">
-        <h2>{{ translations.recent_feedback }}</h2>
-        <div class="feedback-list">
-            {% for item in feedback %}
-            <div class="feedback-item">
-                <div class="feedback-header">
-                    <div class="feedback-meta">
-                        <span class="feedback-product"><strong>{{ item.product }}</strong></span>
-                        <span class="feedback-date">{{ item.created_at }}</span>
-                    </div>
-                    <div class="feedback-rating">
-                        {% for i in range(1, 6) %}
-                            {% if i <= item.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                {% if item.comment %}<div class="feedback-comment">{{ item.comment }}</div>{% endif %}
             </div>
             {% endfor %}
         </div>
-    </section>
-    {% endif %}
+    </div>
+</section>
 
-    {% else %}
-    <section class="empty-state">
-        <div class="empty-content">
-            <i class="fas fa-inbox"></i>
-            <h2>{{ translations.no_data }}</h2>
-            <p>Start by submitting feedback on the <a href="/">home page</a>.</p>
+{% if feedback %}
+<section class="feedback-section">
+    <h2>{{ translations.recent_feedback }}</h2>
+    <div class="feedback-list">
+        {% for item in feedback %}
+        <div class="feedback-item">
+            <div class="feedback-header">
+                <div class="feedback-meta">
+                    <span class="feedback-product"><strong>{{ item.product }}</strong></span>
+                    <span class="feedback-date">{{ item.created_at }}</span>
+                </div>
+                <div class="feedback-rating">
+                    {% for i in range(1, 6) %}
+                        {% if i <= item.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% if item.comment %}<div class="feedback-comment">{{ item.comment }}</div>{% endif %}
         </div>
-    </section>
-    {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
-    <!-- Export Section -->
-    <section class="export-section">
-        <div class="export-buttons">
-            <button class="btn btn-export btn-pdf" onclick="exportPDF()">
-                <i class="fas fa-file-pdf"></i> Export as PDF
-            </button>
-            <button class="btn btn-export btn-excel" onclick="exportExcel()">
-                <i class="fas fa-file-excel"></i> Export as Excel
-            </button>
-            <button class="btn btn-secondary" onclick="exportJSON()">
-                <i class="fas fa-download"></i> Export as JSON
-            </button>
-        </div>
-        <div id="export-status" class="export-status" style="display:none;">
-            <i class="fas fa-spinner fa-spin"></i> <span id="export-msg">Generating…</span>
-        </div>
-    </section>
+{% else %}
+<section class="empty-state">
+    <div class="empty-content">
+        <i class="fas fa-inbox"></i>
+        <h2>{{ translations.no_data }}</h2>
+        <p>Start by submitting feedback on the <a href="/">home page</a>.</p>
+    </div>
+</section>
+{% endif %}
+
+<!-- Export Section -->
+<section class="export-section">
+    <div class="export-buttons">
+        <button class="btn btn-export btn-pdf" onclick="exportPDF()">
+            <i class="fas fa-file-pdf"></i> Export as PDF
+        </button>
+        <button class="btn btn-export btn-excel" onclick="exportExcel()">
+            <i class="fas fa-file-excel"></i> Export as Excel
+        </button>
+        <button class="btn btn-secondary" onclick="exportJSON()">
+            <i class="fas fa-download"></i> Export as JSON
+        </button>
+    </div>
+    <div id="export-status" class="export-status" style="display:none;">
+        <i class="fas fa-spinner fa-spin"></i> <span id="export-msg">Generating…</span>
+    </div>
+</section>
+```
+
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
-        integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3oD+sCoJrzXJ+yKqclXElZiIcMHeBjqZQ70pzIWBrFC+yq68UxTW2A=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
 /* Charts */
@@ -222,9 +225,6 @@ function cColors(){
 let barC, doughC, radC;
 
 function buildCharts(){
-    /* wait until Chart.js is actually available */
-    if (typeof Chart === 'undefined') { setTimeout(buildCharts, 100); return; }
-
     const cc = cColors();
     Chart.defaults.font.family = "'Segoe UI',Tahoma,Geneva,Verdana,sans-serif";
 
@@ -310,8 +310,27 @@ function refreshCharts(){
 const _orig = window.toggleDarkMode;
 window.toggleDarkMode = function(){ if(_orig)_orig(); setTimeout(refreshCharts,60); };
 
-/* Start after full page load so scripts are ready */
-window.addEventListener('load', buildCharts);
+/* Bulletproof init — retry up to 20× every 200ms, then show error */
+let _attempts = 0;
+function initCharts(){
+    if(typeof Chart !== 'undefined'){
+        try { buildCharts(); }
+        catch(e){
+            console.error('Chart build error:', e);
+            document.querySelectorAll('.chart-wrapper').forEach(el=>{
+                el.innerHTML='<p style="color:#ef4444;padding:1rem;font-size:.85rem;">Chart error: '+e.message+'</p>';
+            });
+        }
+    } else if(_attempts < 20){
+        _attempts++;
+        setTimeout(initCharts, 200);
+    } else {
+        document.querySelectorAll('.chart-wrapper').forEach(el=>{
+            el.innerHTML='<p style="color:#ef4444;padding:1rem;font-size:.85rem;">Could not load Chart.js. Check your internet connection.</p>';
+        });
+    }
+}
+document.addEventListener('DOMContentLoaded', initCharts);
 
 /* ════════════════════════════════════
    PDF EXPORT  — pure jsPDF, no screenshot
@@ -578,4 +597,5 @@ function showStatus(on,msg){
     el.style.display=on?'block':'none';
 }
 </script>
+
 {% endblock %}
