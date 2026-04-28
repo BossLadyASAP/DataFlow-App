@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations.analysis_title }} - INF232 EC2{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="analytics-header">
+        <h1>{{ translations.analysis_title }}</h1>
+        <p>Descriptive Statistics & Data Insights</p>
+    </section>
+
+    {% if stats %}
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ translations.total_responses }}</h3>
+                <p class="stat-value">{{ stats.total_count }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ translations.avg_rating }}</h3>
+                <p class="stat-value">{{ stats.average }}/5</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-arrow-up"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ translations.highest_rating }}</h3>
+                <p class="stat-value">{{ stats.max }}/5</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-arrow-down"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ translations.lowest_rating }}</h3>
+                <p class="stat-value">{{ stats.min }}/5</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="analysis-section">
+        <div class="analysis-box">
+            <h2>{{ translations.rating_distribution }}</h2>
+            <div class="distribution-chart">
+                {% for rating in range(1, 6) %}
+                <div class="distribution-bar">
+                    <div class="bar-label">{{ rating }} ⭐</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: {% if stats.total_count > 0 %}{{ (stats.distribution[rating] / stats.total_count * 100) }}{% else %}0{% endif %}%">
+                            <span class="bar-count">{{ stats.distribution[rating] }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="analysis-box">
+            <h2>Additional Statistics</h2>
+            <div class="stats-table">
+                <div class="stats-row">
+                    <span class="stats-label">Median Rating:</span>
+                    <span class="stats-value">{{ stats.median }}/5</span>
+                </div>
+                <div class="stats-row">
+                    {% if stats.mode %}
+                    <span class="stats-label">Mode (Most Frequent):</span>
+                    <span class="stats-value">{{ stats.mode }}/5</span>
+                    {% else %}
+                    <span class="stats-label">Mode:</span>
+                    <span class="stats-value">No mode</span>
+                    {% endif %}
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Standard Deviation:</span>
+                    <span class="stats-value">{{ stats.std_dev }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if feedback %}
+    <section class="feedback-section">
+        <h2>{{ translations.recent_feedback }}</h2>
+        <div class="feedback-list">
+            {% for item in feedback %}
+            <div class="feedback-item">
+                <div class="feedback-header">
+                    <div class="feedback-meta">
+                        <span class="feedback-product"><strong>{{ item.product }}</strong></span>
+                        <span class="feedback-date">{{ item.created_at }}</span>
+                    </div>
+                    <div class="feedback-rating">
+                        {% for i in range(1, 6) %}
+                            {% if i <= item.rating %}
+                            <i class="fas fa-star"></i>
+                            {% else %}
+                            <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if item.comment %}
+                <div class="feedback-comment">
+                    {{ item.comment }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% else %}
+    <section class="empty-state">
+        <div class="empty-content">
+            <i class="fas fa-inbox"></i>
+            <h2>{{ translations.no_data }}</h2>
+            <p>Start by submitting feedback on the <a href="/">home page</a>.</p>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="export-section">
+        <button class="btn btn-secondary" onclick="exportData()">
+            <i class="fas fa-download"></i> Export Data as JSON
+        </button>
+    </section>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function exportData() {
+    fetch('/api/export')
+        .then(response => response.json())
+        .then(data => {
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `feedback_export_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            console.error('Export error:', error);
+            alert('Failed to export data');
+        });
+}
+</script>
+{% endblock %}

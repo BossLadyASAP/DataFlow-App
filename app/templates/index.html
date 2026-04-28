@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations.title }} - INF232 EC2{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="hero">
+        <div class="hero-content">
+            <h1>{{ translations.title }}</h1>
+            <p>{{ translations.subtitle }}</p>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <div class="form-container">
+            <h2>{{ translations.form_title }}</h2>
+            
+            <form id="feedback-form" class="feedback-form">
+                <div class="form-group">
+                    <label for="product">{{ translations.product_label }} <span class="required">*</span></label>
+                    <input 
+                        type="text" 
+                        id="product" 
+                        name="product" 
+                        required 
+                        placeholder="e.g., Product A, Service B"
+                        class="form-input"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="rating">{{ translations.rating_label }} <span class="required">*</span></label>
+                    <div class="rating-input">
+                        <div class="star-rating" id="star-rating">
+                            <i class="far fa-star" data-value="1"></i>
+                            <i class="far fa-star" data-value="2"></i>
+                            <i class="far fa-star" data-value="3"></i>
+                            <i class="far fa-star" data-value="4"></i>
+                            <i class="far fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" id="rating" name="rating" required>
+                        <span id="rating-value" class="rating-value">0</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment">{{ translations.comment_label }}</label>
+                    <textarea 
+                        id="comment" 
+                        name="comment" 
+                        rows="4"
+                        placeholder="Share your detailed feedback..."
+                        class="form-textarea"
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> {{ translations.submit_btn }}
+                </button>
+            </form>
+
+            <div id="message" class="message"></div>
+        </div>
+    </section>
+
+    <section class="info-section">
+        <div class="info-grid">
+            <div class="info-card">
+                <i class="fas fa-lightbulb"></i>
+                <h3>Simple & Intuitive</h3>
+                <p>Easy-to-use interface for collecting valuable customer feedback.</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-chart-pie"></i>
+                <h3>Data Analysis</h3>
+                <p>Descriptive statistics and insights from collected feedback data.</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-globe"></i>
+                <h3>Multilingual</h3>
+                <p>Support for multiple languages to reach a global audience.</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-moon"></i>
+                <h3>Dark Mode</h3>
+                <p>Comfortable viewing experience with dark mode support.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Star rating functionality
+    const stars = document.querySelectorAll('#star-rating i');
+    const ratingInput = document.getElementById('rating');
+    const ratingValue = document.getElementById('rating-value');
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            ratingInput.value = value;
+            ratingValue.textContent = value;
+            
+            stars.forEach(s => {
+                if (s.getAttribute('data-value') <= value) {
+                    s.classList.remove('far');
+                    s.classList.add('fas');
+                } else {
+                    s.classList.remove('fas');
+                    s.classList.add('far');
+                }
+            });
+        });
+
+        star.addEventListener('mouseover', function() {
+            const value = this.getAttribute('data-value');
+            stars.forEach(s => {
+                if (s.getAttribute('data-value') <= value) {
+                    s.classList.add('hover');
+                } else {
+                    s.classList.remove('hover');
+                }
+            });
+        });
+    });
+
+    document.getElementById('star-rating').addEventListener('mouseout', function() {
+        stars.forEach(s => s.classList.remove('hover'));
+    });
+
+    // Form submission
+    document.getElementById('feedback-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            product: document.getElementById('product').value,
+            rating: parseInt(document.getElementById('rating').value),
+            comment: document.getElementById('comment').value
+        };
+
+        try {
+            const response = await fetch('/api/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+            const messageDiv = document.getElementById('message');
+
+            if (response.ok) {
+                messageDiv.className = 'message success';
+                messageDiv.textContent = data.message;
+                document.getElementById('feedback-form').reset();
+                ratingValue.textContent = '0';
+                stars.forEach(s => {
+                    s.classList.remove('fas');
+                    s.classList.add('far');
+                });
+            } else {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = data.error || 'An error occurred';
+            }
+
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        } catch (error) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message error';
+            messageDiv.textContent = 'Network error: ' + error.message;
+            messageDiv.style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %}

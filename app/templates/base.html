@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}INF232 EC2 - Data Collection App{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app" class="light-mode">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>INF232 EC2</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                        <i class="fas fa-home"></i> {{ translations.home }}
+                    </a>
+                    <a href="/analytics" class="nav-link {% if request.path == '/analytics' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i> {{ translations.analytics }}
+                    </a>
+                </div>
+                <div class="nav-controls">
+                    <select id="language-select" class="language-select" onchange="changeLanguage()">
+                        <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+                        <option value="fr" {% if lang == 'fr' %}selected{% endif %}>Français</option>
+                    </select>
+                    <button id="dark-mode-toggle" class="dark-mode-btn" onclick="toggleDarkMode()">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2026 INF232 EC2 - Data Collection & Analysis Application</p>
+                <p>Programme: Analyse de Données | Université</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
