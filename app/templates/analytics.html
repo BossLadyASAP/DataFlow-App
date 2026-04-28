@@ -41,7 +41,7 @@
         </div>
     </section>
 
-    <!-- Row 1: Bar + Doughnut charts -->
+    <!-- Charts row 1 -->
     <section class="analysis-section">
         <div class="analysis-box chart-box">
             <h2><i class="fas fa-chart-bar chart-icon"></i> {{ translations.rating_distribution }}</h2>
@@ -49,15 +49,15 @@
         </div>
         <div class="analysis-box chart-box">
             <h2><i class="fas fa-chart-pie chart-icon"></i> Rating Share</h2>
-            <div class="chart-wrapper chart-wrapper--doughnut"><canvas id="doughnutChart"></canvas></div>
+            <div class="chart-wrapper"><canvas id="doughnutChart"></canvas></div>
         </div>
     </section>
 
-    <!-- Row 2: Radar + Stats table -->
+    <!-- Charts row 2 -->
     <section class="analysis-section">
         <div class="analysis-box chart-box">
             <h2><i class="fas fa-bullseye chart-icon"></i> Rating Profile</h2>
-            <div class="chart-wrapper chart-wrapper--radar"><canvas id="radarChart"></canvas></div>
+            <div class="chart-wrapper"><canvas id="radarChart"></canvas></div>
         </div>
         <div class="analysis-box">
             <h2><i class="fas fa-table chart-icon"></i> Additional Statistics</h2>
@@ -93,7 +93,7 @@
                 <div class="distribution-bar">
                     <div class="bar-label">{{ rating }} ⭐</div>
                     <div class="bar-container">
-                        <div class="bar-fill" style="width: {% if stats.total_count > 0 %}{{ (stats.distribution[rating] / stats.total_count * 100) }}{% else %}0{% endif %}%">
+                        <div class="bar-fill" style="width:{% if stats.total_count > 0 %}{{ (stats.distribution[rating] / stats.total_count * 100) }}{% else %}0{% endif %}%">
                             <span class="bar-count">{{ stats.distribution[rating] }}</span>
                         </div>
                     </div>
@@ -137,7 +137,7 @@
     </section>
     {% endif %}
 
-    <!-- Export buttons -->
+    <!-- Export Section -->
     <section class="export-section">
         <div class="export-buttons">
             <button class="btn btn-export btn-pdf" onclick="exportPDF()">
@@ -151,46 +151,46 @@
             </button>
         </div>
         <div id="export-status" class="export-status" style="display:none;">
-            <i class="fas fa-spinner fa-spin"></i> Generating export&hellip;
+            <i class="fas fa-spinner fa-spin"></i> <span id="export-msg">Generating…</span>
         </div>
     </section>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Chart.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<!-- jsPDF + html2canvas (PDF export) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<!-- SheetJS (Excel export) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
+        integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3oD+sCoJrzXJ+yKqclXElZiIcMHeBjqZQ70pzIWBrFC+yq68UxTW2A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <style>
-.chart-box { display:flex; flex-direction:column; }
-.chart-wrapper { position:relative; height:280px; width:100%; }
-.chart-wrapper--doughnut { height:260px; }
-.chart-wrapper--radar    { height:280px; }
-.chart-icon { margin-right:.4rem; color:var(--accent-color); }
+/* Charts */
+.chart-box   { display:flex; flex-direction:column; }
+.chart-wrapper { position:relative; height:260px; width:100%; }
+.chart-icon  { margin-right:.4rem; color:var(--accent-color); }
 
+/* Export buttons */
 .export-buttons { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
 .btn-export {
     display:inline-flex; align-items:center; gap:.5rem;
-    padding:.75rem 1.5rem; border:none; border-radius:8px;
+    padding:.75rem 1.6rem; border:none; border-radius:8px;
     font-size:.95rem; font-weight:600; cursor:pointer;
     transition:transform .15s, box-shadow .15s;
 }
-.btn-export:hover  { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.18); }
+.btn-export:hover  { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.2); }
 .btn-export:active { transform:translateY(0); }
-.btn-pdf           { background:#e53e3e; color:#fff; }
-.btn-pdf:hover     { background:#c53030; }
-.btn-excel         { background:#276749; color:#fff; }
-.btn-excel:hover   { background:#1e5138; }
-.export-status     { margin-top:1rem; color:var(--text-secondary); font-size:.9rem; }
+.btn-pdf         { background:#dc2626; color:#fff; }
+.btn-pdf:hover   { background:#b91c1c; }
+.btn-excel       { background:#15803d; color:#fff; }
+.btn-excel:hover { background:#166534; }
+.export-status   { margin-top:1rem; color:var(--text-secondary); font-size:.9rem; }
 </style>
 
 <script>
-/* ── Data from server ── */
+/* ── Server data ── */
 const DIST = {
     1: {{ stats.distribution[1] if stats else 0 }},
     2: {{ stats.distribution[2] if stats else 0 }},
@@ -202,182 +202,284 @@ const STATS = {
     total:  {{ stats.total_count  if stats else 0 }},
     avg:    {{ stats.average      if stats else 0 }},
     median: {{ stats.median       if stats else 0 }},
-    mode:   {{ stats.mode         if stats else 'null' }},
+    mode:   {{ stats.mode if stats and stats.mode else 'null' }},
     std:    {{ stats.std_dev      if stats else 0 }},
     min:    {{ stats.min          if stats else 0 }},
     max:    {{ stats.max          if stats else 0 }}
 };
 
-const LABELS  = ['1 ⭐','2 ⭐','3 ⭐','4 ⭐','5 ⭐'];
+const LABELS  = ['1 ★','2 ★','3 ★','4 ★','5 ★'];
 const VALUES  = [DIST[1],DIST[2],DIST[3],DIST[4],DIST[5]];
 const PALETTE = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6'];
 
-function isDark() { return document.getElementById('app').classList.contains('dark-mode'); }
-function chartColors() {
+function isDark(){ return document.getElementById('app').classList.contains('dark-mode'); }
+function cColors(){
     return isDark()
-        ? { grid:'rgba(255,255,255,.12)', text:'#c0c0c0', bg:'#2d2d2d' }
-        : { grid:'rgba(0,0,0,.08)',       text:'#555555', bg:'#ffffff' };
+        ? {grid:'rgba(255,255,255,.1)',text:'#c0c0c0',bg:'#2d2d2d'}
+        : {grid:'rgba(0,0,0,.07)',    text:'#555',    bg:'#fff'};
 }
 
-let barChart, doughnutChart, radarChart;
+let barC, doughC, radC;
 
-function buildCharts() {
-    const c = chartColors();
-    Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+function buildCharts(){
+    /* wait until Chart.js is actually available */
+    if (typeof Chart === 'undefined') { setTimeout(buildCharts, 100); return; }
 
-    barChart = new Chart(document.getElementById('barChart').getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: LABELS,
-            datasets: [{ label:'Responses', data:VALUES,
-                backgroundColor:PALETTE.map(p=>p+'cc'), borderColor:PALETTE,
-                borderWidth:2, borderRadius:6, borderSkipped:false }]
+    const cc = cColors();
+    Chart.defaults.font.family = "'Segoe UI',Tahoma,Geneva,Verdana,sans-serif";
+
+    /* ── Bar ── */
+    barC = new Chart(document.getElementById('barChart'),{
+        type:'bar',
+        data:{
+            labels:LABELS,
+            datasets:[{
+                label:'Responses', data:VALUES,
+                backgroundColor:PALETTE.map(p=>p+'bb'),
+                borderColor:PALETTE, borderWidth:2,
+                borderRadius:6, borderSkipped:false
+            }]
         },
-        options: {
+        options:{
             responsive:true, maintainAspectRatio:false,
-            plugins: {
+            plugins:{
                 legend:{display:false},
-                tooltip:{ callbacks:{ label: ctx=>' '+ctx.parsed.y+' response'+(ctx.parsed.y!==1?'s':'') }}
+                tooltip:{callbacks:{label:c=>' '+c.parsed.y+' response'+(c.parsed.y!==1?'s':'')}}
             },
-            scales: {
-                x:{ grid:{color:c.grid}, ticks:{color:c.text} },
-                y:{ beginAtZero:true, grid:{color:c.grid}, ticks:{color:c.text, stepSize:1} }
+            scales:{
+                x:{grid:{color:cc.grid},ticks:{color:cc.text}},
+                y:{beginAtZero:true,grid:{color:cc.grid},ticks:{color:cc.text,stepSize:1}}
             }
         }
     });
 
-    doughnutChart = new Chart(document.getElementById('doughnutChart').getContext('2d'), {
-        type: 'doughnut',
-        data: {
-            labels: LABELS,
-            datasets: [{ data:VALUES,
-                backgroundColor:PALETTE.map(p=>p+'dd'),
-                borderColor:c.bg, borderWidth:3, hoverOffset:8 }]
+    /* ── Doughnut ── */
+    doughC = new Chart(document.getElementById('doughnutChart'),{
+        type:'doughnut',
+        data:{
+            labels:LABELS,
+            datasets:[{
+                data:VALUES,
+                backgroundColor:PALETTE.map(p=>p+'cc'),
+                borderColor:cc.bg, borderWidth:3, hoverOffset:8
+            }]
         },
-        options: {
-            responsive:true, maintainAspectRatio:false, cutout:'62%',
-            plugins: {
-                legend:{ position:'bottom', labels:{ color:c.text, padding:12, usePointStyle:true, pointStyleWidth:10 }},
-                tooltip:{ callbacks:{ label: ctx=>{
-                    const pct = STATS.total ? ((ctx.parsed/STATS.total)*100).toFixed(1) : 0;
-                    return ' '+ctx.parsed+' responses ('+pct+'%)';
+        options:{
+            responsive:true, maintainAspectRatio:false, cutout:'60%',
+            plugins:{
+                legend:{position:'bottom',labels:{color:cc.text,padding:14,usePointStyle:true,pointStyleWidth:10}},
+                tooltip:{callbacks:{label:c=>{
+                    const pct=STATS.total?((c.parsed/STATS.total)*100).toFixed(1):0;
+                    return ' '+c.parsed+' ('+pct+'%)';
                 }}}
             }
         }
     });
 
-    radarChart = new Chart(document.getElementById('radarChart').getContext('2d'), {
-        type: 'radar',
-        data: {
-            labels: LABELS,
-            datasets: [{ label:'Response Count', data:VALUES,
-                backgroundColor:'rgba(59,130,246,.25)', borderColor:'#3b82f6',
-                borderWidth:2, pointBackgroundColor:'#3b82f6', pointRadius:4 }]
+    /* ── Radar ── */
+    radC = new Chart(document.getElementById('radarChart'),{
+        type:'radar',
+        data:{
+            labels:LABELS,
+            datasets:[{
+                label:'Count', data:VALUES,
+                backgroundColor:'rgba(59,130,246,.2)',
+                borderColor:'#3b82f6', borderWidth:2,
+                pointBackgroundColor:'#3b82f6', pointRadius:4
+            }]
         },
-        options: {
+        options:{
             responsive:true, maintainAspectRatio:false,
-            plugins:{ legend:{ labels:{ color:c.text }}},
-            scales:{ r:{
+            plugins:{legend:{labels:{color:cc.text}}},
+            scales:{r:{
                 beginAtZero:true,
-                ticks:{ color:c.text, stepSize:1, backdropColor:'transparent' },
-                grid:{ color:c.grid },
-                pointLabels:{ color:c.text, font:{size:12} }
+                ticks:{color:cc.text,stepSize:1,backdropColor:'transparent'},
+                grid:{color:cc.grid},
+                pointLabels:{color:cc.text,font:{size:12}}
             }}
         }
     });
 }
 
-function refreshCharts() {
-    [barChart, doughnutChart, radarChart].forEach(ch => ch && ch.destroy());
+function refreshCharts(){
+    [barC,doughC,radC].forEach(c=>c&&c.destroy());
     buildCharts();
 }
 
-/* Hook into the existing dark-mode toggle */
-const _origToggle = window.toggleDarkMode;
-window.toggleDarkMode = function() { if(_origToggle) _origToggle(); setTimeout(refreshCharts, 50); };
+/* Hook dark mode toggle */
+const _orig = window.toggleDarkMode;
+window.toggleDarkMode = function(){ if(_orig)_orig(); setTimeout(refreshCharts,60); };
 
-document.addEventListener('DOMContentLoaded', buildCharts);
+/* Start after full page load so scripts are ready */
+window.addEventListener('load', buildCharts);
 
-/* ── PDF Export ── */
-async function exportPDF() {
-    showStatus(true);
+/* ════════════════════════════════════
+   PDF EXPORT  — pure jsPDF, no screenshot
+   ════════════════════════════════════ */
+async function exportPDF(){
+    showStatus(true,'Building PDF…');
     const { jsPDF } = window.jspdf;
-    const canvas = await html2canvas(document.querySelector('.container'), {
-        scale:2, useCORS:true,
-        backgroundColor: isDark() ? '#1a1a1a' : '#ffffff',
-        logging:false
+    const doc = new jsPDF({orientation:'p',unit:'mm',format:'a4'});
+    const W=210, blue=[59,130,246], white=[255,255,255], dark=[30,30,30], grey=[245,246,248];
+
+    /* helpers */
+    const fill  = (r,g,b)=>doc.setFillColor(r,g,b);
+    const color = (r,g,b)=>doc.setTextColor(r,g,b);
+    const font  = (s,w)=>{doc.setFontSize(s);doc.setFont('helvetica',w||'normal');};
+
+    /* ── Header ── */
+    fill(...blue); doc.rect(0,0,W,22,'F');
+    color(...white);
+    font(14,'bold'); doc.text('INF232 EC2',10,10);
+    font(9,'normal'); doc.text('Feedback Analytics Report',10,16);
+    font(8,'normal'); doc.text('Generated: '+new Date().toLocaleString(),W-10,16,{align:'right'});
+
+    let y = 30;
+
+    /* ── KPI row ── */
+    const kpis=[
+        {label:'Total Responses', val:STATS.total},
+        {label:'Average Rating',  val:STATS.avg+' / 5'},
+        {label:'Median',          val:STATS.median+' / 5'},
+        {label:'Std Deviation',   val:STATS.std},
+        {label:'Min',             val:STATS.min+' / 5'},
+        {label:'Max',             val:STATS.max+' / 5'},
+    ];
+    const cardW=30, gap=5, startX=10;
+    kpis.forEach((k,i)=>{
+        const x=startX+i*(cardW+gap);
+        fill(240,245,255); doc.roundedRect(x,y,cardW,18,2,2,'F');
+        color(...blue); font(11,'bold'); doc.text(String(k.val),x+cardW/2,y+8,{align:'center'});
+        color(100,100,100); font(6,'normal'); doc.text(k.label,x+cardW/2,y+14,{align:'center'});
     });
+    y += 26;
 
-    const imgW = 210;
-    const imgH = (canvas.height * imgW) / canvas.width;
-    const pdf  = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
-
-    /* Blue header */
-    pdf.setFillColor(59,130,246); pdf.rect(0,0,210,18,'F');
-    pdf.setTextColor(255,255,255); pdf.setFontSize(11); pdf.setFont('helvetica','bold');
-    pdf.text('INF232 EC2 \u2014 Feedback Analytics Report', 10, 11);
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
-    pdf.text('Generated: '+new Date().toLocaleString(), 148, 11);
-
-    /* Stats strip */
-    pdf.setFillColor(248,249,250); pdf.rect(0,18,210,20,'F');
-    [{label:'Total',val:STATS.total},{label:'Average',val:STATS.avg+'/5'},
-     {label:'Median',val:STATS.median+'/5'},{label:'Std Dev',val:STATS.std},
-     {label:'Min',val:STATS.min+'/5'},{label:'Max',val:STATS.max+'/5'}
-    ].forEach((item,i)=>{
-        const x = 10+i*33;
-        pdf.setFont('helvetica','bold'); pdf.setFontSize(10); pdf.setTextColor(59,130,246);
-        pdf.text(String(item.val), x, 28);
-        pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(100,100,100);
-        pdf.text(item.label, x, 33);
-    });
-
-    /* Paginate screenshot */
-    const topOff=40, avail=297-topOff-10, scale=canvas.width/imgW, sliceH=avail*scale;
-    let srcY=0, firstPage=true;
-    while (srcY < canvas.height) {
-        const thisSlice = Math.min(sliceH, canvas.height-srcY);
-        const sc = document.createElement('canvas');
-        sc.width=canvas.width; sc.height=thisSlice;
-        sc.getContext('2d').drawImage(canvas,0,srcY,canvas.width,thisSlice,0,0,canvas.width,thisSlice);
-        if (!firstPage) {
-            pdf.addPage();
-            pdf.setFillColor(59,130,246); pdf.rect(0,0,210,8,'F');
-            pdf.setTextColor(255,255,255); pdf.setFontSize(7); pdf.setFont('helvetica','italic');
-            pdf.text('INF232 EC2 \u2014 continued', 10, 5.5);
-        }
-        pdf.addImage(sc.toDataURL('image/png'),'PNG',0,firstPage?topOff:10,imgW,thisSlice/scale);
-        srcY+=thisSlice; firstPage=false;
+    /* ── Section title helper ── */
+    function sectionTitle(title){
+        fill(...blue); doc.rect(10,y,W-20,7,'F');
+        color(...white); font(9,'bold'); doc.text(title,14,y+5);
+        y+=11;
     }
 
-    /* Footer on every page */
-    const total=pdf.internal.getNumberOfPages();
-    for (let p=1;p<=total;p++) {
-        pdf.setPage(p);
-        pdf.setFillColor(59,130,246); pdf.rect(0,290,210,7,'F');
-        pdf.setTextColor(255,255,255); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
-        pdf.text('INF232 EC2 \u2014 Data Collection & Analysis Application', 10, 294.5);
-        pdf.text('Page '+p+' of '+total, 185, 294.5);
+    /* ── Rating Distribution table ── */
+    sectionTitle('RATING DISTRIBUTION');
+    const cols=[45,35,35,35];
+    const headers=['Rating','Count','Percentage','Bar'];
+    fill(230,238,255);
+    doc.rect(10,y,W-20,7,'F');
+    color(...dark); font(8,'bold');
+    let cx=12;
+    headers.forEach((h,i)=>{ doc.text(h,cx,y+5); cx+=cols[i]; });
+    y+=9;
+
+    const total=STATS.total||1;
+    [1,2,3,4,5].forEach((r,idx)=>{
+        const count=DIST[r];
+        const pct=((count/total)*100).toFixed(1);
+        fill(idx%2===0?249:255,idx%2===0?250:255,idx%2===0?252:255);
+        doc.rect(10,y,W-20,7,'F');
+        color(...dark); font(8,'normal');
+        cx=12;
+        doc.text(r+' Star'+(r>1?'s':''), cx,y+5); cx+=cols[0];
+        doc.text(String(count),           cx,y+5); cx+=cols[1];
+        doc.text(pct+'%',                 cx,y+5); cx+=cols[2];
+        /* mini bar */
+        const barW=(W-20-cx+10)*0.7;
+        fill(220,230,250); doc.rect(cx,y+2,barW,3,'F');
+        const rgb=[[239,68,68],[249,115,22],[234,179,8],[34,197,94],[59,130,246]];
+        fill(...rgb[idx]); doc.rect(cx,y+2,barW*(count/total),3,'F');
+        y+=8;
+    });
+    y+=6;
+
+    /* ── Summary stats ── */
+    sectionTitle('DESCRIPTIVE STATISTICS');
+    const statRows=[
+        ['Total Responses', STATS.total],
+        ['Average Rating',  STATS.avg+' / 5'],
+        ['Median Rating',   STATS.median+' / 5'],
+        ['Mode',            STATS.mode||'No mode'],
+        ['Standard Deviation', STATS.std],
+        ['Range',           (STATS.max-STATS.min)],
+        ['Minimum Rating',  STATS.min+' / 5'],
+        ['Maximum Rating',  STATS.max+' / 5'],
+    ];
+    statRows.forEach(([label,val],i)=>{
+        fill(i%2===0?249:255,i%2===0?250:255,i%2===0?252:255);
+        doc.rect(10,y,W-20,7,'F');
+        color(...dark); font(8,'normal');
+        doc.text(label,14,y+5);
+        font(8,'bold'); doc.text(String(val),W-14,y+5,{align:'right'});
+        y+=7;
+    });
+    y+=8;
+
+    /* ── Recent feedback ── */
+    if(y < 230){
+        sectionTitle('RECENT FEEDBACK');
+        doc.setDrawColor(200,210,230);
     }
 
-    pdf.save('feedback_analytics_'+datestamp()+'.pdf');
+    /* ── Footer on every page ── */
+    const pages=doc.internal.getNumberOfPages();
+    for(let p=1;p<=pages;p++){
+        doc.setPage(p);
+        fill(...blue); doc.rect(0,287,W,10,'F');
+        color(...white); font(7,'normal');
+        doc.text('INF232 EC2 — Data Collection & Analysis',10,293);
+        doc.text('Page '+p+' of '+pages,W-10,293,{align:'right'});
+    }
+
+    doc.save('feedback_analytics_'+ds()+'.pdf');
     showStatus(false);
 }
 
-/* ── Excel Export ── */
-async function exportExcel() {
-    showStatus(true);
+/* ════════════════════════════════════
+   EXCEL EXPORT — styled workbook
+   ════════════════════════════════════ */
+async function exportExcel(){
+    showStatus(true,'Building Excel…');
     const raw = await fetch('/api/export').then(r=>r.json());
     const { feedback=[], statistics:s={} } = raw;
     const wb = XLSX.utils.book_new();
 
-    /* Sheet 1: Summary */
-    const ws1 = XLSX.utils.aoa_to_sheet([
-        ['INF232 EC2 \u2014 Feedback Analytics Report'],
-        ['Generated: '+new Date().toLocaleString()],
-        [],
-        ['SUMMARY STATISTICS'],
-        ['Metric','Value'],
+    /* ── colour helpers ── */
+    function hdr(v){ return {v, t:'s', s:{
+        fill:{fgColor:{rgb:'1D4ED8'}},
+        font:{bold:true,color:{rgb:'FFFFFF'},sz:11},
+        alignment:{horizontal:'center',vertical:'center'},
+        border:allBorder('FFFFFF')
+    }};}
+    function cell(v,bold,bg,align){return {v,t:typeof v==='number'?'n':'s',s:{
+        fill:{fgColor:{rgb:bg||'FFFFFF'}},
+        font:{bold:!!bold,sz:10,color:{rgb:'1E293B'}},
+        alignment:{horizontal:align||'left',vertical:'center'},
+        border:allBorder('D1D5DB')
+    }};}
+    function numCell(v,bg){ return {v,t:'n',s:{
+        fill:{fgColor:{rgb:bg||'FFFFFF'}},
+        font:{sz:10,color:{rgb:'1E293B'}},
+        alignment:{horizontal:'center'},
+        border:allBorder('D1D5DB')
+    }};}
+    function allBorder(c){ const s={style:'thin',color:{rgb:c}};
+        return {top:s,bottom:s,left:s,right:s}; }
+    function titleCell(v){ return {v,t:'s',s:{
+        fill:{fgColor:{rgb:'EFF6FF'}},
+        font:{bold:true,sz:14,color:{rgb:'1D4ED8'}},
+        alignment:{horizontal:'left',vertical:'center'}
+    }};}
+
+    const ROW_COLORS = ['F8FAFF','FFFFFF'];
+
+    /* ══ Sheet 1: Summary ══ */
+    const ws1data = [];
+    ws1data.push([titleCell('INF232 EC2 — Feedback Analytics Report'),{v:'',s:{}},{v:'',s:{}}]);
+    ws1data.push([{v:'Generated: '+new Date().toLocaleString(),t:'s',s:{font:{italic:true,sz:9,color:{rgb:'6B7280'}}}},{v:'',s:{}},{v:'',s:{}}]);
+    ws1data.push([{v:'',s:{}},{v:'',s:{}},{v:'',s:{}}]);
+    ws1data.push([hdr('Metric'),hdr('Value'),hdr(' ')]);
+
+    const sRows=[
         ['Total Responses',   s.total_count??0],
         ['Average Rating',    s.average??0],
         ['Median Rating',     s.median??0],
@@ -386,61 +488,94 @@ async function exportExcel() {
         ['Minimum Rating',    s.min??0],
         ['Maximum Rating',    s.max??0],
         ['Range',             (s.max??0)-(s.min??0)],
-        [],
-        ['RATING DISTRIBUTION'],
-        ['Stars','Count','Percentage'],
-        ...[1,2,3,4,5].map(r=>[
-            r+' \u2605',
-            (s.distribution??{})[r]??0,
-            s.total_count?(((s.distribution??{})[r]??0)/s.total_count*100).toFixed(1)+'%':'0%'
-        ])
-    ]);
-    ws1['!cols']=[{wch:26},{wch:16},{wch:14}];
+    ];
+    sRows.forEach(([label,val],i)=>{
+        const bg=ROW_COLORS[i%2];
+        ws1data.push([cell(label,false,bg),
+            typeof val==='number'?numCell(val,bg):cell(String(val),true,bg,'center'),
+            {v:'',s:{fill:{fgColor:{rgb:bg}}}}]);
+    });
+
+    ws1data.push([{v:'',s:{}},{v:'',s:{}},{v:'',s:{}}]);
+    ws1data.push([hdr('RATING DISTRIBUTION'),hdr('Count'),hdr('Percentage')]);
+    const distBg=['FEF2F2','FFF7ED','FEFCE8','F0FDF4','EFF6FF'];
+    ;[1,2,3,4,5].forEach((r,i)=>{
+        const count=(s.distribution??{})[r]??0;
+        const pct=s.total_count?((count/s.total_count)*100).toFixed(1)+'%':'0%';
+        ws1data.push([
+            cell('★'.repeat(r)+'☆'.repeat(5-r)+' ('+r+' star'+(r>1?'s':'')+')',true,distBg[i]),
+            numCell(count,distBg[i]),
+            cell(pct,false,distBg[i],'center')
+        ]);
+    });
+
+    const ws1 = XLSX.utils.aoa_to_sheet(ws1data);
+    ws1['!cols']=[{wch:30},{wch:18},{wch:14}];
+    ws1['!rows']=ws1data.map((_,i)=>({hpt: i===0?28:i===1?16:20}));
     ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:2}},{s:{r:1,c:0},e:{r:1,c:2}}];
-    XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+    XLSX.utils.book_append_sheet(wb, ws1, '📊 Summary');
 
-    /* Sheet 2: All Feedback */
-    const ws2 = XLSX.utils.aoa_to_sheet([
-        ['ID','Product / Service','Rating','Stars','Comment','Submitted At'],
-        ...feedback.map(item=>[
-            item.id, item.product, item.rating,
-            '\u2605'.repeat(item.rating)+'\u2606'.repeat(5-item.rating),
-            item.comment||'', item.created_at
-        ])
-    ]);
-    ws2['!cols']=[{wch:6},{wch:28},{wch:8},{wch:10},{wch:50},{wch:22}];
-    XLSX.utils.book_append_sheet(wb, ws2, 'All Feedback');
+    /* ══ Sheet 2: All Feedback ══ */
+    const fb2=[
+        [hdr('ID'),hdr('Product / Service'),hdr('Rating'),hdr('Stars'),hdr('Comment'),hdr('Submitted At')]
+    ];
+    feedback.forEach((item,i)=>{
+        const bg=ROW_COLORS[i%2];
+        const starBg=['FEF2F2','FFF7ED','FEFCE8','F0FDF4','EFF6FF'][item.rating-1]||'FFFFFF';
+        fb2.push([
+            numCell(item.id,bg),
+            cell(item.product,true,bg),
+            {v:item.rating,t:'n',s:{fill:{fgColor:{rgb:starBg}},font:{bold:true,sz:11,color:{rgb:'1E293B'}},alignment:{horizontal:'center'},border:allBorder('D1D5DB')}},
+            cell('★'.repeat(item.rating)+'☆'.repeat(5-item.rating),false,starBg,'center'),
+            cell(item.comment||'—',false,bg),
+            cell(item.created_at,false,bg,'center')
+        ]);
+    });
+    const ws2=XLSX.utils.aoa_to_sheet(fb2);
+    ws2['!cols']=[{wch:6},{wch:28},{wch:8},{wch:12},{wch:52},{wch:22}];
+    ws2['!rows']=[{hpt:22},...feedback.map(()=>({hpt:20}))];
+    XLSX.utils.book_append_sheet(wb, ws2, '📝 All Feedback');
 
-    /* Sheet 3: Distribution */
-    const ws3 = XLSX.utils.aoa_to_sheet([
-        ['Rating','Stars','Count','Percentage'],
-        ...[1,2,3,4,5].map(r=>[
-            r, '\u2605'.repeat(r),
-            (s.distribution??{})[r]??0,
-            s.total_count?(((s.distribution??{})[r]??0)/s.total_count*100).toFixed(2)+'%':'0.00%'
-        ])
-    ]);
-    ws3['!cols']=[{wch:8},{wch:8},{wch:10},{wch:14}];
-    XLSX.utils.book_append_sheet(wb, ws3, 'Distribution');
+    /* ══ Sheet 3: Distribution chart-ready ══ */
+    const dist3=[
+        [hdr('Rating'),hdr('Stars'),hdr('Count'),hdr('Percentage'),hdr('Visual')]
+    ];
+    ;[1,2,3,4,5].forEach((r,i)=>{
+        const count=(s.distribution??{})[r]??0;
+        const pct=s.total_count?((count/s.total_count)*100).toFixed(2)+'%':'0.00%';
+        const bar='█'.repeat(Math.round((count/(Math.max(...[1,2,3,4,5].map(x=>(s.distribution??{})[x]??0))||1))*20));
+        dist3.push([
+            numCell(r,distBg[i]),
+            cell('★'.repeat(r),false,distBg[i],'center'),
+            numCell(count,distBg[i]),
+            cell(pct,false,distBg[i],'center'),
+            cell(bar,false,distBg[i])
+        ]);
+    });
+    const ws3=XLSX.utils.aoa_to_sheet(dist3);
+    ws3['!cols']=[{wch:8},{wch:10},{wch:10},{wch:14},{wch:24}];
+    ws3['!rows']=[{hpt:22},...[1,2,3,4,5].map(()=>({hpt:20}))];
+    XLSX.utils.book_append_sheet(wb, ws3, '📈 Distribution');
 
-    XLSX.writeFile(wb, 'feedback_analytics_'+datestamp()+'.xlsx');
+    XLSX.writeFile(wb, 'feedback_analytics_'+ds()+'.xlsx');
     showStatus(false);
 }
 
-/* ── JSON Export (original) ── */
-function exportJSON() {
-    fetch('/api/export')
-        .then(r=>r.json())
-        .then(data=>{
-            const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-            const url=URL.createObjectURL(blob);
-            const a=Object.assign(document.createElement('a'),{href:url,download:'feedback_export_'+datestamp()+'.json'});
-            a.click(); URL.revokeObjectURL(url);
-        })
-        .catch(()=>alert('Failed to export data'));
+/* ── JSON (original) ── */
+function exportJSON(){
+    fetch('/api/export').then(r=>r.json()).then(data=>{
+        const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+        const u=URL.createObjectURL(b);
+        Object.assign(document.createElement('a'),{href:u,download:'feedback_export_'+ds()+'.json'}).click();
+        URL.revokeObjectURL(u);
+    }).catch(()=>alert('Failed to export data'));
 }
 
-function datestamp() { return new Date().toISOString().split('T')[0]; }
-function showStatus(on) { document.getElementById('export-status').style.display=on?'block':'none'; }
+function ds(){ return new Date().toISOString().split('T')[0]; }
+function showStatus(on,msg){
+    const el=document.getElementById('export-status');
+    if(msg) document.getElementById('export-msg').textContent=msg;
+    el.style.display=on?'block':'none';
+}
 </script>
 {% endblock %}
