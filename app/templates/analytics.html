@@ -83,7 +83,7 @@
             </div>
             <div class="stats-row">
                 <span class="stats-label">Range:</span>
-                <span class="stats-value">{{ stats.max - stats.min }}</span>
+                <span class="stats-value">{{ (stats.max - stats.min) | int }}</span>
             </div>
             <div class="stats-row">
                 <span class="stats-label">Total Responses:</span>
@@ -95,7 +95,7 @@
             <div class="distribution-bar">
                 <div class="bar-label">{{ rating }} ⭐</div>
                 <div class="bar-container">
-                    <div class="bar-fill" style="width:{% if stats.total_count > 0 %}{{ (stats.distribution[rating] / stats.total_count * 100) }}{% else %}0{% endif %}%">
+                    <div class="bar-fill" style="width:{% if stats.total_count > 0 %}{{ ((stats.distribution[rating] / stats.total_count) * 100) | round(1) }}{% else %}0{% endif %}%">
                         <span class="bar-count">{{ stats.distribution[rating] }}</span>
                     </div>
                 </div>
