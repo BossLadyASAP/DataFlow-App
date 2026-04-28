@@ -6,45 +6,34 @@
 <div class="container">
     <section class="analytics-header">
         <h1>{{ translations.analysis_title }}</h1>
-        <p>Descriptive Statistics & Data Insights</p>
+        <p>Descriptive Statistics &amp; Data Insights</p>
     </section>
 
     {% if stats %}
     <section class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-database"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-database"></i></div>
             <div class="stat-content">
                 <h3>{{ translations.total_responses }}</h3>
                 <p class="stat-value">{{ stats.total_count }}</p>
             </div>
         </div>
-
         <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-star"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-star"></i></div>
             <div class="stat-content">
                 <h3>{{ translations.avg_rating }}</h3>
                 <p class="stat-value">{{ stats.average }}/5</p>
             </div>
         </div>
-
         <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-arrow-up"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
             <div class="stat-content">
                 <h3>{{ translations.highest_rating }}</h3>
                 <p class="stat-value">{{ stats.max }}/5</p>
             </div>
         </div>
-
         <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-arrow-down"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
             <div class="stat-content">
                 <h3>{{ translations.lowest_rating }}</h3>
                 <p class="stat-value">{{ stats.min }}/5</p>
@@ -52,25 +41,26 @@
         </div>
     </section>
 
+    <!-- Row 1: Bar + Doughnut charts -->
     <section class="analysis-section">
-        <div class="analysis-box">
-            <h2>{{ translations.rating_distribution }}</h2>
-            <div class="distribution-chart">
-                {% for rating in range(1, 6) %}
-                <div class="distribution-bar">
-                    <div class="bar-label">{{ rating }} ⭐</div>
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width: {% if stats.total_count > 0 %}{{ (stats.distribution[rating] / stats.total_count * 100) }}{% else %}0{% endif %}%">
-                            <span class="bar-count">{{ stats.distribution[rating] }}</span>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+        <div class="analysis-box chart-box">
+            <h2><i class="fas fa-chart-bar chart-icon"></i> {{ translations.rating_distribution }}</h2>
+            <div class="chart-wrapper"><canvas id="barChart"></canvas></div>
         </div>
+        <div class="analysis-box chart-box">
+            <h2><i class="fas fa-chart-pie chart-icon"></i> Rating Share</h2>
+            <div class="chart-wrapper chart-wrapper--doughnut"><canvas id="doughnutChart"></canvas></div>
+        </div>
+    </section>
 
+    <!-- Row 2: Radar + Stats table -->
+    <section class="analysis-section">
+        <div class="analysis-box chart-box">
+            <h2><i class="fas fa-bullseye chart-icon"></i> Rating Profile</h2>
+            <div class="chart-wrapper chart-wrapper--radar"><canvas id="radarChart"></canvas></div>
+        </div>
         <div class="analysis-box">
-            <h2>Additional Statistics</h2>
+            <h2><i class="fas fa-table chart-icon"></i> Additional Statistics</h2>
             <div class="stats-table">
                 <div class="stats-row">
                     <span class="stats-label">Median Rating:</span>
@@ -89,6 +79,26 @@
                     <span class="stats-label">Standard Deviation:</span>
                     <span class="stats-value">{{ stats.std_dev }}</span>
                 </div>
+                <div class="stats-row">
+                    <span class="stats-label">Range:</span>
+                    <span class="stats-value">{{ stats.max - stats.min }}</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Total Responses:</span>
+                    <span class="stats-value">{{ stats.total_count }}</span>
+                </div>
+            </div>
+            <div class="distribution-chart" style="margin-top:1.5rem;">
+                {% for rating in range(1, 6) %}
+                <div class="distribution-bar">
+                    <div class="bar-label">{{ rating }} ⭐</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: {% if stats.total_count > 0 %}{{ (stats.distribution[rating] / stats.total_count * 100) }}{% else %}0{% endif %}%">
+                            <span class="bar-count">{{ stats.distribution[rating] }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </section>
@@ -106,19 +116,11 @@
                     </div>
                     <div class="feedback-rating">
                         {% for i in range(1, 6) %}
-                            {% if i <= item.rating %}
-                            <i class="fas fa-star"></i>
-                            {% else %}
-                            <i class="far fa-star"></i>
-                            {% endif %}
+                            {% if i <= item.rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
                         {% endfor %}
                     </div>
                 </div>
-                {% if item.comment %}
-                <div class="feedback-comment">
-                    {{ item.comment }}
-                </div>
-                {% endif %}
+                {% if item.comment %}<div class="feedback-comment">{{ item.comment }}</div>{% endif %}
             </div>
             {% endfor %}
         </div>
@@ -135,34 +137,310 @@
     </section>
     {% endif %}
 
+    <!-- Export buttons -->
     <section class="export-section">
-        <button class="btn btn-secondary" onclick="exportData()">
-            <i class="fas fa-download"></i> Export Data as JSON
-        </button>
+        <div class="export-buttons">
+            <button class="btn btn-export btn-pdf" onclick="exportPDF()">
+                <i class="fas fa-file-pdf"></i> Export as PDF
+            </button>
+            <button class="btn btn-export btn-excel" onclick="exportExcel()">
+                <i class="fas fa-file-excel"></i> Export as Excel
+            </button>
+            <button class="btn btn-secondary" onclick="exportJSON()">
+                <i class="fas fa-download"></i> Export as JSON
+            </button>
+        </div>
+        <div id="export-status" class="export-status" style="display:none;">
+            <i class="fas fa-spinner fa-spin"></i> Generating export&hellip;
+        </div>
     </section>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
-<script>
-function exportData() {
-    fetch('/api/export')
-        .then(response => response.json())
-        .then(data => {
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `feedback_export_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-        })
-        .catch(error => {
-            console.error('Export error:', error);
-            alert('Failed to export data');
-        });
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- jsPDF + html2canvas (PDF export) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- SheetJS (Excel export) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+.chart-box { display:flex; flex-direction:column; }
+.chart-wrapper { position:relative; height:280px; width:100%; }
+.chart-wrapper--doughnut { height:260px; }
+.chart-wrapper--radar    { height:280px; }
+.chart-icon { margin-right:.4rem; color:var(--accent-color); }
+
+.export-buttons { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+.btn-export {
+    display:inline-flex; align-items:center; gap:.5rem;
+    padding:.75rem 1.5rem; border:none; border-radius:8px;
+    font-size:.95rem; font-weight:600; cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
 }
+.btn-export:hover  { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.18); }
+.btn-export:active { transform:translateY(0); }
+.btn-pdf           { background:#e53e3e; color:#fff; }
+.btn-pdf:hover     { background:#c53030; }
+.btn-excel         { background:#276749; color:#fff; }
+.btn-excel:hover   { background:#1e5138; }
+.export-status     { margin-top:1rem; color:var(--text-secondary); font-size:.9rem; }
+</style>
+
+<script>
+/* ── Data from server ── */
+const DIST = {
+    1: {{ stats.distribution[1] if stats else 0 }},
+    2: {{ stats.distribution[2] if stats else 0 }},
+    3: {{ stats.distribution[3] if stats else 0 }},
+    4: {{ stats.distribution[4] if stats else 0 }},
+    5: {{ stats.distribution[5] if stats else 0 }}
+};
+const STATS = {
+    total:  {{ stats.total_count  if stats else 0 }},
+    avg:    {{ stats.average      if stats else 0 }},
+    median: {{ stats.median       if stats else 0 }},
+    mode:   {{ stats.mode         if stats else 'null' }},
+    std:    {{ stats.std_dev      if stats else 0 }},
+    min:    {{ stats.min          if stats else 0 }},
+    max:    {{ stats.max          if stats else 0 }}
+};
+
+const LABELS  = ['1 ⭐','2 ⭐','3 ⭐','4 ⭐','5 ⭐'];
+const VALUES  = [DIST[1],DIST[2],DIST[3],DIST[4],DIST[5]];
+const PALETTE = ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6'];
+
+function isDark() { return document.getElementById('app').classList.contains('dark-mode'); }
+function chartColors() {
+    return isDark()
+        ? { grid:'rgba(255,255,255,.12)', text:'#c0c0c0', bg:'#2d2d2d' }
+        : { grid:'rgba(0,0,0,.08)',       text:'#555555', bg:'#ffffff' };
+}
+
+let barChart, doughnutChart, radarChart;
+
+function buildCharts() {
+    const c = chartColors();
+    Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+
+    barChart = new Chart(document.getElementById('barChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: LABELS,
+            datasets: [{ label:'Responses', data:VALUES,
+                backgroundColor:PALETTE.map(p=>p+'cc'), borderColor:PALETTE,
+                borderWidth:2, borderRadius:6, borderSkipped:false }]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false,
+            plugins: {
+                legend:{display:false},
+                tooltip:{ callbacks:{ label: ctx=>' '+ctx.parsed.y+' response'+(ctx.parsed.y!==1?'s':'') }}
+            },
+            scales: {
+                x:{ grid:{color:c.grid}, ticks:{color:c.text} },
+                y:{ beginAtZero:true, grid:{color:c.grid}, ticks:{color:c.text, stepSize:1} }
+            }
+        }
+    });
+
+    doughnutChart = new Chart(document.getElementById('doughnutChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: LABELS,
+            datasets: [{ data:VALUES,
+                backgroundColor:PALETTE.map(p=>p+'dd'),
+                borderColor:c.bg, borderWidth:3, hoverOffset:8 }]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false, cutout:'62%',
+            plugins: {
+                legend:{ position:'bottom', labels:{ color:c.text, padding:12, usePointStyle:true, pointStyleWidth:10 }},
+                tooltip:{ callbacks:{ label: ctx=>{
+                    const pct = STATS.total ? ((ctx.parsed/STATS.total)*100).toFixed(1) : 0;
+                    return ' '+ctx.parsed+' responses ('+pct+'%)';
+                }}}
+            }
+        }
+    });
+
+    radarChart = new Chart(document.getElementById('radarChart').getContext('2d'), {
+        type: 'radar',
+        data: {
+            labels: LABELS,
+            datasets: [{ label:'Response Count', data:VALUES,
+                backgroundColor:'rgba(59,130,246,.25)', borderColor:'#3b82f6',
+                borderWidth:2, pointBackgroundColor:'#3b82f6', pointRadius:4 }]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ labels:{ color:c.text }}},
+            scales:{ r:{
+                beginAtZero:true,
+                ticks:{ color:c.text, stepSize:1, backdropColor:'transparent' },
+                grid:{ color:c.grid },
+                pointLabels:{ color:c.text, font:{size:12} }
+            }}
+        }
+    });
+}
+
+function refreshCharts() {
+    [barChart, doughnutChart, radarChart].forEach(ch => ch && ch.destroy());
+    buildCharts();
+}
+
+/* Hook into the existing dark-mode toggle */
+const _origToggle = window.toggleDarkMode;
+window.toggleDarkMode = function() { if(_origToggle) _origToggle(); setTimeout(refreshCharts, 50); };
+
+document.addEventListener('DOMContentLoaded', buildCharts);
+
+/* ── PDF Export ── */
+async function exportPDF() {
+    showStatus(true);
+    const { jsPDF } = window.jspdf;
+    const canvas = await html2canvas(document.querySelector('.container'), {
+        scale:2, useCORS:true,
+        backgroundColor: isDark() ? '#1a1a1a' : '#ffffff',
+        logging:false
+    });
+
+    const imgW = 210;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    const pdf  = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
+
+    /* Blue header */
+    pdf.setFillColor(59,130,246); pdf.rect(0,0,210,18,'F');
+    pdf.setTextColor(255,255,255); pdf.setFontSize(11); pdf.setFont('helvetica','bold');
+    pdf.text('INF232 EC2 \u2014 Feedback Analytics Report', 10, 11);
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(8);
+    pdf.text('Generated: '+new Date().toLocaleString(), 148, 11);
+
+    /* Stats strip */
+    pdf.setFillColor(248,249,250); pdf.rect(0,18,210,20,'F');
+    [{label:'Total',val:STATS.total},{label:'Average',val:STATS.avg+'/5'},
+     {label:'Median',val:STATS.median+'/5'},{label:'Std Dev',val:STATS.std},
+     {label:'Min',val:STATS.min+'/5'},{label:'Max',val:STATS.max+'/5'}
+    ].forEach((item,i)=>{
+        const x = 10+i*33;
+        pdf.setFont('helvetica','bold'); pdf.setFontSize(10); pdf.setTextColor(59,130,246);
+        pdf.text(String(item.val), x, 28);
+        pdf.setFont('helvetica','normal'); pdf.setFontSize(7); pdf.setTextColor(100,100,100);
+        pdf.text(item.label, x, 33);
+    });
+
+    /* Paginate screenshot */
+    const topOff=40, avail=297-topOff-10, scale=canvas.width/imgW, sliceH=avail*scale;
+    let srcY=0, firstPage=true;
+    while (srcY < canvas.height) {
+        const thisSlice = Math.min(sliceH, canvas.height-srcY);
+        const sc = document.createElement('canvas');
+        sc.width=canvas.width; sc.height=thisSlice;
+        sc.getContext('2d').drawImage(canvas,0,srcY,canvas.width,thisSlice,0,0,canvas.width,thisSlice);
+        if (!firstPage) {
+            pdf.addPage();
+            pdf.setFillColor(59,130,246); pdf.rect(0,0,210,8,'F');
+            pdf.setTextColor(255,255,255); pdf.setFontSize(7); pdf.setFont('helvetica','italic');
+            pdf.text('INF232 EC2 \u2014 continued', 10, 5.5);
+        }
+        pdf.addImage(sc.toDataURL('image/png'),'PNG',0,firstPage?topOff:10,imgW,thisSlice/scale);
+        srcY+=thisSlice; firstPage=false;
+    }
+
+    /* Footer on every page */
+    const total=pdf.internal.getNumberOfPages();
+    for (let p=1;p<=total;p++) {
+        pdf.setPage(p);
+        pdf.setFillColor(59,130,246); pdf.rect(0,290,210,7,'F');
+        pdf.setTextColor(255,255,255); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+        pdf.text('INF232 EC2 \u2014 Data Collection & Analysis Application', 10, 294.5);
+        pdf.text('Page '+p+' of '+total, 185, 294.5);
+    }
+
+    pdf.save('feedback_analytics_'+datestamp()+'.pdf');
+    showStatus(false);
+}
+
+/* ── Excel Export ── */
+async function exportExcel() {
+    showStatus(true);
+    const raw = await fetch('/api/export').then(r=>r.json());
+    const { feedback=[], statistics:s={} } = raw;
+    const wb = XLSX.utils.book_new();
+
+    /* Sheet 1: Summary */
+    const ws1 = XLSX.utils.aoa_to_sheet([
+        ['INF232 EC2 \u2014 Feedback Analytics Report'],
+        ['Generated: '+new Date().toLocaleString()],
+        [],
+        ['SUMMARY STATISTICS'],
+        ['Metric','Value'],
+        ['Total Responses',   s.total_count??0],
+        ['Average Rating',    s.average??0],
+        ['Median Rating',     s.median??0],
+        ['Mode',              s.mode??'N/A'],
+        ['Standard Deviation',s.std_dev??0],
+        ['Minimum Rating',    s.min??0],
+        ['Maximum Rating',    s.max??0],
+        ['Range',             (s.max??0)-(s.min??0)],
+        [],
+        ['RATING DISTRIBUTION'],
+        ['Stars','Count','Percentage'],
+        ...[1,2,3,4,5].map(r=>[
+            r+' \u2605',
+            (s.distribution??{})[r]??0,
+            s.total_count?(((s.distribution??{})[r]??0)/s.total_count*100).toFixed(1)+'%':'0%'
+        ])
+    ]);
+    ws1['!cols']=[{wch:26},{wch:16},{wch:14}];
+    ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:2}},{s:{r:1,c:0},e:{r:1,c:2}}];
+    XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+
+    /* Sheet 2: All Feedback */
+    const ws2 = XLSX.utils.aoa_to_sheet([
+        ['ID','Product / Service','Rating','Stars','Comment','Submitted At'],
+        ...feedback.map(item=>[
+            item.id, item.product, item.rating,
+            '\u2605'.repeat(item.rating)+'\u2606'.repeat(5-item.rating),
+            item.comment||'', item.created_at
+        ])
+    ]);
+    ws2['!cols']=[{wch:6},{wch:28},{wch:8},{wch:10},{wch:50},{wch:22}];
+    XLSX.utils.book_append_sheet(wb, ws2, 'All Feedback');
+
+    /* Sheet 3: Distribution */
+    const ws3 = XLSX.utils.aoa_to_sheet([
+        ['Rating','Stars','Count','Percentage'],
+        ...[1,2,3,4,5].map(r=>[
+            r, '\u2605'.repeat(r),
+            (s.distribution??{})[r]??0,
+            s.total_count?(((s.distribution??{})[r]??0)/s.total_count*100).toFixed(2)+'%':'0.00%'
+        ])
+    ]);
+    ws3['!cols']=[{wch:8},{wch:8},{wch:10},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, ws3, 'Distribution');
+
+    XLSX.writeFile(wb, 'feedback_analytics_'+datestamp()+'.xlsx');
+    showStatus(false);
+}
+
+/* ── JSON Export (original) ── */
+function exportJSON() {
+    fetch('/api/export')
+        .then(r=>r.json())
+        .then(data=>{
+            const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+            const url=URL.createObjectURL(blob);
+            const a=Object.assign(document.createElement('a'),{href:url,download:'feedback_export_'+datestamp()+'.json'});
+            a.click(); URL.revokeObjectURL(url);
+        })
+        .catch(()=>alert('Failed to export data'));
+}
+
+function datestamp() { return new Date().toISOString().split('T')[0]; }
+function showStatus(on) { document.getElementById('export-status').style.display=on?'block':'none'; }
 </script>
 {% endblock %}
