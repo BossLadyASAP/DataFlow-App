@@ -15,7 +15,8 @@ app = Flask(__name__, template_folder='app/templates', static_folder='app/static
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # Database configuration
-DATABASE = 'feedback.db'
+DATABASE = os.environ.get('DATABASE_PATH', '/tmp/feedback.db')
+
 
 # Translations
 TRANSLATIONS = {
@@ -78,9 +79,10 @@ TRANSLATIONS = {
 }
 
 def get_db():
-    """Get database connection."""
-    db = sqlite3.connect(DATABASE)
+    """Get database connection with WAL mode for multi-worker safety."""
+    db = sqlite3.connect(DATABASE, timeout=10)
     db.row_factory = sqlite3.Row
+    db.execute('PRAGMA journal_mode=WAL')
     return db
 
 def init_db():
@@ -101,8 +103,11 @@ def init_db():
 
 def get_language():
     """Get the current language from session or default to 'en'."""
-    return session.get('language', 'en')
-
+    try:
+        return session.get('language', 'en')
+    except Exception:
+        return 'en'
+        
 def get_translation(key):
     """Get translation for a key."""
     lang = get_language()
