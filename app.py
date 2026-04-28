@@ -174,34 +174,43 @@ def analytics():
                          translations=translations,
                          lang=get_language())
 
-@app.route('/api/feedback', methods=['POST'])
-def submit_feedback():
-    """API endpoint to submit feedback."""
-    try:
-        data = request.get_json()
-        
-        # Validate input
-        if not data.get('product') or not data.get('rating'):
-            return jsonify({'error': 'Missing required fields'}), 400
-        
-        rating = int(data.get('rating'))
-        if rating < 1 or rating > 5:
-            return jsonify({'error': 'Rating must be between 1 and 5'}), 400
-        
-        # Insert into database
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('''
-            INSERT INTO feedback (product, rating, comment)
-            VALUES (?, ?, ?)
-        ''', (data['product'], rating, data.get('comment', '')))
-        db.commit()
-        db.close()
-        
-        return jsonify({'success': True, 'message': get_translation('success_msg')}), 201
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+@app.route('/api/feedback', methods=['GET', 'POST'])
+def feedback():
+    """API endpoint to submit (POST) or retrieve (GET) feedback."""
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+
+            # Validate input
+            if not data.get('product') or not data.get('rating'):
+                return jsonify({'error': 'Missing required fields'}), 400
+
+            rating = int(data.get('rating'))
+            if rating < 1 or rating > 5:
+                return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+
+            # Insert into database
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute('''
+                INSERT INTO feedback (product, rating, comment)
+                VALUES (?, ?, ?)
+            ''', (data['product'], rating, data.get('comment', '')))
+            db.commit()
+            db.close()
+
+            return jsonify({'success': True, 'message': get_translation('success_msg')}), 201
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    # GET — return recent feedback
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT * FROM feedback ORDER BY created_at DESC LIMIT 20')
+    feedback_list = [dict(row) for row in cursor.fetchall()]
+    db.close()
+    return jsonify(feedback_list), 200
 
 @app.route('/api/stats')
 def get_stats():
@@ -210,16 +219,6 @@ def get_stats():
     if stats:
         return jsonify(stats), 200
     return jsonify({'error': 'No data available'}), 404
-
-@app.route('/api/feedback')
-def get_feedback():
-    """API endpoint to get recent feedback."""
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute('SELECT * FROM feedback ORDER BY created_at DESC LIMIT 20')
-    feedback_list = [dict(row) for row in cursor.fetchall()]
-    db.close()
-    return jsonify(feedback_list), 200
 
 @app.route('/api/language/<lang>')
 def set_language(lang):
